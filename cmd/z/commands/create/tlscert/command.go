@@ -159,31 +159,3 @@ func GetCommand() *cobra.Command {
 	conf.ApplyToCobra(&command)
 	return &command
 }
-
-/*
-
-echo '---------------------';
-echo 'signing server csr...';
-openssl x509 \
-  -req \
-  -in ./keys2/server-csr.pem \
-  -CA ./keys2/ca-cert.pem \
-  -CAkey ./keys2/ca-key.pem \
-  -CAcreateserial \
-  -out ./keys2/server-cert.pem;
-
-echo '-------------------------';
-echo 'printing ca cert details:';
-openssl x509 \
-  -in ./keys2/ca-cert.pem \
-  -noout \
-  -text;
-
-echo '-----------------------------';
-echo 'printing server cert details:';
-openssl x509 \
-  -in ./keys2/server-cert.pem \
-  -noout \
-  -text;
-
-*/
