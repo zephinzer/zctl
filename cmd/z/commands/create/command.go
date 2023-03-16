@@ -2,6 +2,7 @@ package create
 
 import (
 	"zctl/cmd/z/commands/create/gpgkey"
+	"zctl/cmd/z/commands/create/sshkey"
 	"zctl/cmd/z/commands/create/tlscert"
 
 	"github.com/spf13/cobra"
@@ -16,6 +17,7 @@ func GetCommand() *cobra.Command {
 		},
 	}
 	command.AddCommand(gpgkey.GetCommand())
+	command.AddCommand(sshkey.GetCommand())
 	command.AddCommand(tlscert.GetCommand())
 	return &command
 }
