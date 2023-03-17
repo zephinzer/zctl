@@ -2,6 +2,20 @@
 
 My personal CLI tool. Use AS-IS and check this README.md for updates to the commands.
 
+- [`zctl`](#zctl)
+- [Commands](#commands)
+  - [`create`](#create)
+    - [`gpgkey`](#gpgkey)
+    - [`helm`](#helm)
+    - [`k8s`](#k8s)
+    - [`sshkey`](#sshkey)
+    - [`tlscert`](#tlscert)
+  - [`get`](#get)
+    - [`base64`](#base64)
+    - [`deps`](#deps)
+    - [`md5`](#md5)
+    - [`sha256`](#sha256)
+
 # Commands
 
 ## `create`
