@@ -2,6 +2,8 @@ package create
 
 import (
 	"zctl/cmd/z/commands/create/gpgkey"
+	"zctl/cmd/z/commands/create/helm"
+	"zctl/cmd/z/commands/create/k8s"
 	"zctl/cmd/z/commands/create/sshkey"
 	"zctl/cmd/z/commands/create/tlscert"
 
@@ -17,6 +19,8 @@ func GetCommand() *cobra.Command {
 		},
 	}
 	command.AddCommand(gpgkey.GetCommand())
+	command.AddCommand(helm.GetCommand())
+	command.AddCommand(k8s.GetCommand())
 	command.AddCommand(sshkey.GetCommand())
 	command.AddCommand(tlscert.GetCommand())
 	return &command

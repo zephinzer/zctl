@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "${PROJECT_ID}.fullname" . }}
+  labels:
+    {{- include "${PROJECT_ID}.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "${PROJECT_ID}.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        # checksum/configmap: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        # checksum/secrets: {{ include (print $.Template.BasePath "/secrets.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "${PROJECT_ID}.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "${PROJECT_ID}.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ include "${PROJECT_ID}.fullname" . }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ required "The image.tag must be specified to deploy this" .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # env:
+          # - name: EXAMPLE_FROM_METADATA
+          #   valueFrom:
+          #     fieldRef:
+          #       fieldPath: status.hostIP
+          # - name: EXAMPLE_FROM_STRING_LITERAL
+          #   value: example
+          # - name: EXAMPLE_FROM_CONFIGMAP
+          #   valueFrom:
+          #     configMapKeyRef:
+          #       key: key
+          # - name: EXAMPLE_FROM_SECRET
+          #   valueFrom:
+          #     secretKeyRef:
+          #       key: key
+          # envFrom: # enable if needed
+          #   - secretRef:
+          #       name: {{ include "${PROJECT_ID}.fullname" . }}
+          #       optional: false
+          #   - configMapRef:
+          #       name: {{ include "${PROJECT_ID}.fullname" . }}
+          #       optional: false
+          # ports: # enable if needed
+          #   - name: http
+          #     containerPort: {{ .Values.service.port }}
+          #     protocol: TCP
+          # livenessProbe:
+          #   httpGet:
+          #     path: /healthz
+          #     port: http
+          # readinessProbe:
+          #   httpGet:
+          #     path: /readyz
+          #     port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          # volumeMounts: # enable if needed
+          #   - name: template-volume
+          #     mountPath: /mount/path
+      # volumes: # enable if needed
+      #   - name: template-volume
+      #     secret:
+      #       defaultMode: 440
+      #       secretName: {{ include "${PROJECT_ID}.fullname" . }}-kafka
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

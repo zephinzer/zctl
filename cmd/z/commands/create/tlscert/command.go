@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"zctl/internal/cliutils"
 	"zctl/internal/pathutils"
 
 	"github.com/spf13/cobra"
@@ -144,6 +145,22 @@ func GetCommand() *cobra.Command {
 				}
 			}
 			openSslTemplateContents := strings.Join(openSslTemplateContentsDelimited, "\n") + "\n\n"
+
+			details := cliutils.GetDetailsTable(map[string]string{
+				"configuration":           strings.Trim(openSslTemplateContents, "\n"),
+				"configuration path":      tmpFilePath,
+				"ca key path":             caKeyPath,
+				"ca certificate path":     caCertPath,
+				"server certificate path": serverCertPath,
+				"server csr path":         serverCsrPath,
+				"server key path":         serverKeyPath,
+			})
+			log.Printf("creating self signed tls certificate with following configuration...")
+			confirmationMessage := details
+			if err := cliutils.Confirm(confirmationMessage); err != nil {
+				return fmt.Errorf("failed to get consent: %s", err)
+			}
+
 			if err := os.WriteFile(tmpFilePath, []byte(openSslTemplateContents), os.ModePerm); err != nil {
 				return fmt.Errorf("failed to create tmp file at path[%s]: %s", tmpFilePath, err)
 			}
@@ -160,7 +177,6 @@ func GetCommand() *cobra.Command {
 			log.Printf("using following openssl config:\n%s", openSslTemplateContents)
 			toRun := commander.NewCommand("openssl").
 				AddParam("req").
-				AddParam("-nodes").
 				AddParam("-x509").
 				AddParam("-newkey", "rsa:4096").
 				AddParam("-days", strconv.Itoa(validityDays)).
@@ -168,29 +184,36 @@ func GetCommand() *cobra.Command {
 				AddParam("-keyout", caKeyPath).
 				AddParam("-out", caCertPath)
 			if conf.GetString("password") != "" {
-				toRun.SetEnvironment("OPENSSL_CERT_PASSWORD", conf.GetString("password"))
-				toRun.AddParam("passout", "env:OPENSSL_CERT_PASSWORD")
+				toRun = toRun.
+					AddParam("-passout", "env:OPENSSL_CERT_PASSWORD").
+					SetEnvironment("OPENSSL_CERT_PASSWORD", conf.GetString("password"))
+			} else {
+				toRun = toRun.AddParam("-nodes")
 			}
 			log.Printf("generating ca cert and key...\n%s", toRun.GetAsString())
 			output := toRun.Execute()
 			if output.Error != nil {
-				return fmt.Errorf("failed to generate ca cert and key: %s", output.Error)
+				return fmt.Errorf("failed to generate ca cert and key: %s\n%s", output.Error, output.Stderr.String())
 			}
 
 			toRun = commander.NewCommand("openssl").
 				AddParam("req").
-				AddParam("-nodes").
+				AddParam("-newkey", "rsa:4096").
 				AddParam("-config", tmpFilePath).
 				AddParam("-keyout", serverKeyPath).
 				AddParam("-out", serverCsrPath)
 			if conf.GetString("password") != "" {
-				toRun.SetEnvironment("OPENSSL_CERT_PASSWORD", conf.GetString("password"))
-				toRun.AddParam("passout", "env:OPENSSL_CERT_PASSWORD")
+				fmt.Println(conf.GetString("password"))
+				toRun = toRun.
+					AddParam("-passout", "env:OPENSSL_CERT_PASSWORD").
+					SetEnvironment("OPENSSL_CERT_PASSWORD", conf.GetString("password"))
+			} else {
+				toRun = toRun.AddParam("-nodes")
 			}
 			log.Printf("generating server csr and key...\n%s", toRun.GetAsString())
 			output = toRun.Execute()
 			if output.Error != nil {
-				return fmt.Errorf("failed to generate server csr and key: %s", output.Error)
+				return fmt.Errorf("failed to generate server csr and key: %s\n%s", output.Error, output.Stderr.String())
 			}
 
 			toRun = commander.NewCommand("openssl").
@@ -202,10 +225,20 @@ func GetCommand() *cobra.Command {
 				AddParam("-CAkey", caKeyPath).
 				AddParam("-CAcreateserial").
 				AddParam("-out", serverCertPath)
+			if conf.GetString("password") != "" {
+				toRun = toRun.
+					AddParam("-passin", "env:OPENSSL_CERT_PASSWORD").
+					SetEnvironment("OPENSSL_CERT_PASSWORD", conf.GetString("password"))
+			}
+			if len(altNames) > 0 {
+				toRun = toRun.
+					AddParam("-extensions", "req_extensions").
+					AddParam("-extfile", tmpFilePath)
+			}
 			log.Printf("signing server csr...\n%s", toRun.GetAsString())
 			output = toRun.Execute()
 			if output.Error != nil {
-				return fmt.Errorf("failed to sign server csr: %s", output.Error)
+				return fmt.Errorf("failed to sign server csr: %s\n%s", output.Error, output.Stderr.String())
 			}
 
 			return nil

@@ -2,6 +2,7 @@ package z
 
 import (
 	"zctl/cmd/z/commands/create"
+	"zctl/cmd/z/commands/get"
 
 	"github.com/spf13/cobra"
 )
@@ -15,5 +16,6 @@ func GetCommand() *cobra.Command {
 		},
 	}
 	command.AddCommand(create.GetCommand())
+	command.AddCommand(get.GetCommand())
 	return &command
 }
