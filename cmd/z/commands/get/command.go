@@ -11,8 +11,9 @@ import (
 
 func GetCommand() *cobra.Command {
 	command := cobra.Command{
-		Use:   "get",
-		Short: "Gets stuff",
+		Use:     "get",
+		Aliases: []string{"g"},
+		Short:   "Gets stuff",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return cmd.Help()
 		},

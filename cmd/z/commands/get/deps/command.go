@@ -23,7 +23,7 @@ func GetCommand() *cobra.Command {
 	isProductionInstall := conf.GetBool("production")
 	command := cobra.Command{
 		Use:     "deps",
-		Aliases: []string{"aliases"},
+		Aliases: []string{"d"},
 		Short:   "Gets dependencies for the current directory",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			pwd, err := os.Getwd()

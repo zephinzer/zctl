@@ -20,8 +20,9 @@ var conf = config.Map{
 
 func GetCommand() *cobra.Command {
 	command := cobra.Command{
-		Use:   "base64 [plaintext]",
-		Short: "gets base64 encoding of provided input",
+		Use:     "base64 [plaintext]",
+		Aliases: []string{"b64"},
+		Short:   "gets base64 encoding of provided input",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			fileInput := conf.GetString("file-input")
 			stringInput := ""

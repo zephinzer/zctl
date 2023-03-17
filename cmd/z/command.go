@@ -1,4 +1,4 @@
-package z
+package main
 
 import (
 	"zctl/cmd/z/commands/create"
