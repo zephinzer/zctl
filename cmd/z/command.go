@@ -3,6 +3,7 @@ package main
 import (
 	"zctl/cmd/z/commands/create"
 	"zctl/cmd/z/commands/get"
+	"zctl/cmd/z/commands/initialise"
 
 	"github.com/spf13/cobra"
 )
@@ -17,5 +18,6 @@ func GetCommand() *cobra.Command {
 	}
 	command.AddCommand(create.GetCommand())
 	command.AddCommand(get.GetCommand())
+	command.AddCommand(initialise.GetCommand())
 	return &command
 }
